@@ -1,0 +1,37 @@
+{
+	"schemaVersion": 1,
+	"id": "antichunkban",
+	"version": "${version}",
+	"name": "AntiChunkban",
+	"description": "Prevents you from getting chunkbanned, super useful!!!",
+	"authors": [
+		"Quackerx"
+	],
+	"contact": {
+		"homepage": "Discord: ",
+		"sources": "https://discord.gg/tchc7vfqUH"
+	},
+	"license": "CC0-1.0",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"anti.chunk.AntiChunkban"
+		],
+		"client": [
+			"anti.chunk.client.AntiChunkbanClient"
+		]
+	},
+	"mixins": [
+		"antichunkban.mixins.json",
+		{
+			"config": "antichunkban.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.2",
+		"minecraft": ">=26.1.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
