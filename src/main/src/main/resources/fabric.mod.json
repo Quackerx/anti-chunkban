@@ -1,0 +1,29 @@
+{
+	"schemaVersion": 1,
+	"id": "anti-chunkban",
+	"version": "${version}",
+	"name": "anti-chunkban",
+	"description": "This mod prevents you from getting chunk banned",
+	"authors": [
+		"Quackerx"
+	],
+	"contact": {
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/anti-chunkban/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"anti.ban.AntiChunkban"
+		]
+	},
+	"mixins": [
+		"anti-chunkban.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
