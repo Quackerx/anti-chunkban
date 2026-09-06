@@ -1,6 +1,7 @@
 package anti.ban.mixin;
 
 import anti.ban.ChunkPacketState;
+import anti.ban.Saver;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundLightUpdatePacketData;
 import org.spongepowered.asm.mixin.Final;
@@ -37,6 +38,9 @@ public class ClientboundLightUpdatePacketDataMixin {
 
     @Inject(method = "<init>(Lnet/minecraft/network/FriendlyByteBuf;II)V", at = @At("RETURN"))
     private void duck$sanitizeLightData(FriendlyByteBuf input, int x, int z, CallbackInfo ci) {
+        if (!Saver.chunkban) {return;}
+
+
         if (!ChunkPacketState.consumeBadLightData()) {
             return;
         }

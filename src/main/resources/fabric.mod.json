@@ -3,13 +3,11 @@
 	"id": "anti-chunkban",
 	"version": "${version}",
 	"name": "anti-chunkban",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "This mod prevents you from getting chunk banned",
 	"authors": [
-		"Me!"
+		"Quackerx"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/anti-chunkban/icon.png",

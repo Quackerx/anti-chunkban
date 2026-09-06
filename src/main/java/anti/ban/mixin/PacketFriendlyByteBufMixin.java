@@ -1,6 +1,7 @@
 package anti.ban.mixin;
 
 import anti.ban.ChunkPacketState;
+import anti.ban.Saver;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;
@@ -24,6 +25,9 @@ public abstract class PacketFriendlyByteBufMixin {
 
     @Inject(method = "readNbt()Lnet/minecraft/nbt/CompoundTag;", at = @At("HEAD"), cancellable = true)
     private void onReadNbt(CallbackInfoReturnable<CompoundTag> cir) {
+        if (!Saver.chunkban) {return;}
+
+
         Tag result;
         try {
             result = this.readNbt(NbtAccounter.create(2_000_000L));
@@ -38,6 +42,8 @@ public abstract class PacketFriendlyByteBufMixin {
     private static int duck$handleHugeLongArray(ByteBuf input) {
         int size = VarInt.read(input);
         int maxSize = input.readableBytes() / 8;
+
+        if (!Saver.chunkban) {return size;}
 
         if (size > maxSize) {
             ChunkPacketState.markBadLightData();

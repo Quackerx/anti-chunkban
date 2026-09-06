@@ -1,5 +1,6 @@
 package anti.ban.mixin;
 
+import anti.ban.Saver;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
@@ -22,6 +23,8 @@ public class CompressionDecoderMixin {
 
     @Inject(method = "decode", at = @At("HEAD"), cancellable = true)
     private void onDecode(ChannelHandlerContext ctx, ByteBuf buf, List<Object> out, CallbackInfo ci) throws Exception {
+        if (!Saver.chunkban) {return;}
+
         ci.cancel();
 
         if (buf.readableBytes() != 0) {
