@@ -40,12 +40,23 @@ public abstract class PacketFriendlyByteBufMixin {
 
     @Redirect(method = "readLongArray(Lio/netty/buffer/ByteBuf;)[J", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/VarInt;read(Lio/netty/buffer/ByteBuf;)I"))
     private static int duck$handleHugeLongArray(ByteBuf input) {
-        int size = VarInt.read(input);
-        int maxSize = input.readableBytes() / 8;
+        if (!Saver.chunkban) {
+            return VarInt.read(input);
+        }
 
-        if (!Saver.chunkban) {return size;}
+        final int size;
 
-        if (size > maxSize) {
+        try {
+            size = VarInt.read(input);
+        } catch (RuntimeException e) {
+            ChunkPacketState.markBadLightData();
+            input.setZero(input.readerIndex(), input.readableBytes());
+            return 0;
+        }
+
+        int maxSize = input.readableBytes() / Long.BYTES;
+
+        if (size < 0 || size > maxSize) {
             ChunkPacketState.markBadLightData();
             input.setZero(input.readerIndex(), input.readableBytes());
             return 0;
