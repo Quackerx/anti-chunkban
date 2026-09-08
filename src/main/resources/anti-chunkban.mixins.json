@@ -3,9 +3,11 @@
   "package": "anti.ban.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
+    "ByteBufCodecsRegistryMixin",
     "ClientboundLevelChunkPacketDataMixin",
     "ClientboundLightUpdatePacketDataMixin",
     "CompressionDecoderMixin",
+    "PacketDecoderMixin",
     "PacketFriendlyByteBufMixin"
   ],
   "injectors": {

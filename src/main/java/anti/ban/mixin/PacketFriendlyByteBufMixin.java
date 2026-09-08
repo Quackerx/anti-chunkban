@@ -20,13 +20,16 @@ import java.util.BitSet;
 
 @Mixin(FriendlyByteBuf.class)
 public abstract class PacketFriendlyByteBufMixin {
+
+    // SANITIZES NBT, important for certain chunkbans / nbt malforms
+
+
     @Shadow
     public abstract Tag readNbt(NbtAccounter sizeTracker);
 
     @Inject(method = "readNbt()Lnet/minecraft/nbt/CompoundTag;", at = @At("HEAD"), cancellable = true)
     private void onReadNbt(CallbackInfoReturnable<CompoundTag> cir) {
         if (!Saver.chunkban) {return;}
-
 
         Tag result;
         try {
@@ -39,7 +42,7 @@ public abstract class PacketFriendlyByteBufMixin {
     }
 
     @Redirect(method = "readLongArray(Lio/netty/buffer/ByteBuf;)[J", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/VarInt;read(Lio/netty/buffer/ByteBuf;)I"))
-    private static int duck$handleHugeLongArray(ByteBuf input) {
+    private static int handleHugeLongArray(ByteBuf input) {
         if (!Saver.chunkban) {
             return VarInt.read(input);
         }
@@ -64,5 +67,21 @@ public abstract class PacketFriendlyByteBufMixin {
 
         return size;
     }
+
+    @Redirect(method = "readCollection(Ljava/util/function/IntFunction;Lnet/minecraft/network/codec/StreamDecoder;)Ljava/util/Collection;", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/FriendlyByteBuf;readVarInt()I"))
+    private int sanitizeCollectionCount(FriendlyByteBuf buf) {
+        int count = buf.readVarInt();
+        if (!Saver.chunkban) return count;
+
+        int maxPossible = buf.readableBytes();
+        if (count < 0 || count > maxPossible) {
+            ChunkPacketState.markBadLightData();
+            buf.skipBytes(buf.readableBytes());
+            return 0;
+        }
+
+        return count;
+    }
+
 }
 

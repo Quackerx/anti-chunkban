@@ -14,6 +14,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(AbstractContainerScreen.class)
 public class HandledScreenMixin extends Screen {
 
+
+    // ADDS chunkban button to inventory
+
     protected HandledScreenMixin(Component title) {
         super(title);
     }

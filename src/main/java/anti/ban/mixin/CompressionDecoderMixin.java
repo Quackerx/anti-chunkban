@@ -18,6 +18,9 @@ import java.util.zip.Inflater;
 
 @Mixin(CompressionDecoder.class)
 public class CompressionDecoderMixin {
+
+    // Allows more data through, still has a decoder check just in case if the size is MASSIVE
+
     @Shadow
     private Inflater inflater;
 

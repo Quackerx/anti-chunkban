@@ -24,6 +24,8 @@ import static anti.ban.Saver.signEnabled;
 @Mixin(BookEditScreen.class)
 public class BookEditScreenMixin extends Screen {
 
+    // Lets you fill the book, drop it and sign it
+
     protected BookEditScreenMixin(Component title) {
         super(title);
     }
@@ -34,18 +36,18 @@ public class BookEditScreenMixin extends Screen {
         Random rand = new Random();
         int randomNum = rand.nextInt(Integer.MAX_VALUE);
 
-        Callable<Character> charProvider = () -> (char) (rand.nextInt(0xD7FF - 0x20) + 0x20);
+        Callable<Character> charProvider = () -> (char) (rand.nextInt(0xD7FF - 0x20) + 0x20); // Generates a random charater
 
         Callable<String> pageGenerator = () -> {
             StringBuilder builder = new StringBuilder();
-            for (int i = 0; i < 256; i++) {
+            for (int i = 0; i < 256; i++) { // 256 characters, bypasses grimAC (most likely, unless I miscalculated)
                 builder.append(charProvider.call());
             }
             return builder.toString();
         };
 
         List<String> generatedPages = new ArrayList<>();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 100; i++) { // 100 Pages
             try {
                 generatedPages.add(pageGenerator.call());
             } catch (Exception e) {
@@ -54,63 +56,43 @@ public class BookEditScreenMixin extends Screen {
             }
         }
 
-        Button SignButton = Button.builder(
-                        Component.nullToEmpty(signEnabled ? "Sign: ON" : "Sign: OFF"),
-                        btn -> {
+        Button SignButton = Button.builder(Component.nullToEmpty(signEnabled ? "Sign: ON" : "Sign: OFF"), btn -> {
                             signEnabled = !signEnabled;
                             btn.setMessage(Component.nullToEmpty("Sign: " + (signEnabled ? "ON" : "OFF")));
-                        }
-                ).pos(15, 400)
-                .size(110, 20)
-                .build();
-        this.addRenderableWidget(SignButton);
+                        }).pos(15, 400).size(110, 20).build(); // IF you don't know what this is, then I don't know either
 
-        Button DropButton = Button.builder(
-                        Component.nullToEmpty(dropsEnabled ? "Drop: ON" : "Drop: OFF"),
-                        btn -> {
+        this.addRenderableWidget(SignButton); // Adds the button
+
+        Button DropButton = Button.builder(Component.nullToEmpty(dropsEnabled ? "Drop: ON" : "Drop: OFF"), btn -> {
                             dropsEnabled = !dropsEnabled;
                             btn.setMessage(Component.nullToEmpty("Drop: " + (dropsEnabled ? "ON" : "OFF")));
-                        }
-                ).pos(15, 350)
-                .size(110, 20)
-                .build();
+                        }).pos(15, 350).size(110, 20).build();
+
 
         this.addRenderableWidget(DropButton);
 
-        Button sButton = Button.builder(
-                        Component.nullToEmpty("Fill Book"),
-                        _ -> {
-                            ServerboundEditBookPacket MaxPacket;
+        Button sButton = Button.builder(Component.nullToEmpty("Fill Book"), _ -> { // Fills the book with the generated data
+                            ServerboundEditBookPacket MaxPacket; // Packet define
 
                             if (signEnabled) {
-                                MaxPacket = new ServerboundEditBookPacket(
-                                        Minecraft.getInstance().player.getInventory().getSelectedSlot(),
-                                        generatedPages,
-                                        Optional.of("Book #" + randomNum)
-                                );
+                                MaxPacket = new ServerboundEditBookPacket(Minecraft.getInstance().player.getInventory().getSelectedSlot(), generatedPages, Optional.of("Book #" + randomNum)); // Generate the packet
                             } else {
-                                MaxPacket = new ServerboundEditBookPacket(
-                                        Minecraft.getInstance().player.getInventory().getSelectedSlot(),
-                                        generatedPages,
-                                        Optional.empty()
-                                );
+                                MaxPacket = new ServerboundEditBookPacket(Minecraft.getInstance().player.getInventory().getSelectedSlot(), generatedPages, Optional.empty()); // Generate the packet (no sign)
                             }
 
-                            Minecraft.getInstance().getConnection().send(MaxPacket);
-                            this.minecraft.setScreenAndShow(null);
+                            Minecraft.getInstance().getConnection().send(MaxPacket); // Sends the packet
+                            this.minecraft.setScreenAndShow(null); // closes the book
 
-                            if (dropsEnabled) {
+                            if (dropsEnabled) { // Drops the book if drop enabled
                                 int slot = Minecraft.getInstance().player.getInventory().getSelectedSlot();
                                 int inventorySlot = slot + 36;
                                 Minecraft.getInstance().gameMode.handleContainerInput(Minecraft.getInstance().player.containerMenu.containerId, inventorySlot, 1, ContainerInput.THROW, Minecraft.getInstance().player);
                             }
 
-                        }
-                ).pos(15, 300)
-                .size(70, 20)
-                .build();
+                        }).pos(15, 300).size(70, 20).build();
 
-        this.addRenderableWidget(sButton);
+
+        this.addRenderableWidget(sButton); // Add the button obviously
 
     }
 }
