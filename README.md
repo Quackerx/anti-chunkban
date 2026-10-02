@@ -3,8 +3,8 @@
 - This mod CAN create chunkbans, as I have added 4 buttons:
 1. Auto drop
 2. Auto Sign
-3. Fill (Fills the book with data, around 75KB)
-4. Activate or deactivate the mod (Button in inventory)
+3. Book fill buttons: 75KB, 150KB and 200KB. 
+4. Activate or deactivate the antichunkban mod (Button in inventory) (does not deactivate book buttons)
   
 - Please report any issues or if there are any new chunkbans / bookbans that I should be aware of.
 
