@@ -23,12 +23,16 @@ public class HandledScreenMixin extends Screen {
 
     @Inject(method = "init", at = @At("TAIL"))
     private void onInit(CallbackInfo ci) {
+
+        int xPos = (int) (this.width * 0.01);
+        int yPos = (int) (this.height * 0.01);
+
         int width = 115;
         int height = 20;
 
         this.addRenderableWidget(Button.builder(Component.literal("Anti-Chunkban: " + Saver.chunkban), b -> {
             Saver.chunkban = !Saver.chunkban;
             b.setMessage(Component.literal("Anti-Chunkban: " + Saver.chunkban));
-        }).bounds(5, 10, width, height).build());
+        }).bounds(xPos, yPos, width, height).build());
     }
 }

@@ -33,6 +33,9 @@ public class BookEditScreenMixin extends Screen {
         Random rand = new Random();
         int randomNum = rand.nextInt(Integer.MAX_VALUE);
 
+        int xPos = (int) (this.width * 0.01);
+        int yPos = (int) (this.height * 0.50);
+
         Callable<Character> charProvider2 = () -> (char) (rand.nextInt(0xD7FF - 0x20) + 0x20); // Generates a random charater
 
         Callable<String> pageGenerator = () -> {
@@ -74,14 +77,14 @@ public class BookEditScreenMixin extends Screen {
         Button SignButton = Button.builder(Component.nullToEmpty(signEnabled ? "Sign: ON" : "Sign: OFF"), btn -> {
                             signEnabled = !signEnabled;
                             btn.setMessage(Component.nullToEmpty("Sign: " + (signEnabled ? "ON" : "OFF")));
-                        }).pos(15, 400).size(110, 20).build(); // IF you don't know what this is, then I don't know either
+                        }).pos(xPos, yPos).size(110, 20).build(); // IF you don't know what this is, then I don't know either
 
         this.addRenderableWidget(SignButton); // Adds the button
 
         Button DropButton = Button.builder(Component.nullToEmpty(dropsEnabled ? "Drop: ON" : "Drop: OFF"), btn -> {
                             dropsEnabled = !dropsEnabled;
                             btn.setMessage(Component.nullToEmpty("Drop: " + (dropsEnabled ? "ON" : "OFF")));
-                        }).pos(15, 375).size(110, 20).build();
+                        }).pos(xPos, yPos - 25).size(110, 20).build();
 
 
         this.addRenderableWidget(DropButton);
@@ -106,7 +109,7 @@ public class BookEditScreenMixin extends Screen {
                                 Minecraft.getInstance().gameMode.handleContainerInput(Minecraft.getInstance().player.containerMenu.containerId, inventorySlot, 1, ContainerInput.THROW, Minecraft.getInstance().player);
                             }
 
-                        }).pos(15, 300).size(70, 20).build();
+                        }).pos(xPos, yPos - 100).size(70, 20).build();
 
 
         this.addRenderableWidget(sButton); // Add the button
@@ -136,7 +139,7 @@ public class BookEditScreenMixin extends Screen {
                             }
 
                         }
-                ).pos(15, 325)
+                ).pos(xPos, yPos - 75)
                 .size(70, 20)
                 .build();
 
@@ -197,7 +200,7 @@ public class BookEditScreenMixin extends Screen {
                             }
 
                         }
-                ).pos(15, 350)
+                ).pos(xPos, yPos - 50)
                 .size(70, 20)
                 .build();
 
