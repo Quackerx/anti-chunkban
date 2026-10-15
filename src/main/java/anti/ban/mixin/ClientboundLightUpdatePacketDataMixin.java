@@ -41,10 +41,8 @@ public class ClientboundLightUpdatePacketDataMixin {
     @Shadow @Final @Mutable
     private List<byte[]> blockUpdates;
 
-    @Inject(method = "<init>(Lnet/minecraft/network/FriendlyByteBuf;II)V", at = @At("RETURN"))
-    private void sanitizeLightData(FriendlyByteBuf input, int x, int z, CallbackInfo ci) {
-        if (!Saver.chunkban) {return;}
-
+    @Inject(method = "<init>(Ljava/util/BitSet;Ljava/util/BitSet;Ljava/util/BitSet;Ljava/util/BitSet;Ljava/util/List;Ljava/util/List;)V", at = @At("RETURN"))
+    private void sanitizeLightData(BitSet skyYMask, BitSet blockYMask, BitSet emptySkyYMask, BitSet emptyBlockYMask, List<byte[]> skyUpdates, List<byte[]> blockUpdates, CallbackInfo ci) {
         if (!ChunkPacketState.consumeBadLightData()) {
             return;
         }
@@ -54,14 +52,11 @@ public class ClientboundLightUpdatePacketDataMixin {
 
         this.emptySkyYMask = new BitSet();
         this.emptyBlockYMask = new BitSet();
-
         this.emptySkyYMask.set(0, 256);
         this.emptyBlockYMask.set(0, 256);
 
         this.skyUpdates = List.of();
         this.blockUpdates = List.of();
-
-        input.readerIndex(input.writerIndex());
     }
 }
 

@@ -29,8 +29,6 @@ public abstract class PacketFriendlyByteBufMixin {
 
     @Inject(method = "readNbt()Lnet/minecraft/nbt/CompoundTag;", at = @At("HEAD"), cancellable = true)
     private void onReadNbt(CallbackInfoReturnable<CompoundTag> cir) {
-        if (!Saver.chunkban) {return;}
-
         Tag result;
         try {
             result = this.readNbt(NbtAccounter.create(2_000_000L));
@@ -41,12 +39,20 @@ public abstract class PacketFriendlyByteBufMixin {
         cir.setReturnValue(result instanceof CompoundTag compound ? compound : new CompoundTag());
     }
 
+    @Inject(method = "readNbt(Lio/netty/buffer/ByteBuf;)Lnet/minecraft/nbt/CompoundTag;", at = @At("HEAD"), cancellable = true)
+    private static void safeReadNbt(ByteBuf input, CallbackInfoReturnable<CompoundTag> cir) {
+        try {
+            Tag tag = FriendlyByteBuf.readNbt(input, NbtAccounter.defaultQuota());
+            cir.setReturnValue(tag == null ? null : tag instanceof CompoundTag c ? c : new CompoundTag());
+        } catch (RuntimeException e) {
+            ChunkPacketState.markBadBlockEntityData();
+            input.setZero(input.readerIndex(), input.readableBytes());
+            cir.setReturnValue(new CompoundTag());
+        }
+    }
+
     @Redirect(method = "readLongArray(Lio/netty/buffer/ByteBuf;)[J", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/VarInt;read(Lio/netty/buffer/ByteBuf;)I"))
     private static int handleHugeLongArray(ByteBuf input) {
-        if (!Saver.chunkban) {
-            return VarInt.read(input);
-        }
-
         final int size;
 
         try {
@@ -66,21 +72,6 @@ public abstract class PacketFriendlyByteBufMixin {
         }
 
         return size;
-    }
-
-    @Redirect(method = "readCollection(Ljava/util/function/IntFunction;Lnet/minecraft/network/codec/StreamDecoder;)Ljava/util/Collection;", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/FriendlyByteBuf;readVarInt()I"))
-    private int sanitizeCollectionCount(FriendlyByteBuf buf) {
-        int count = buf.readVarInt();
-        if (!Saver.chunkban) return count;
-
-        int maxPossible = buf.readableBytes();
-        if (count < 0 || count > maxPossible) {
-            ChunkPacketState.markBadLightData();
-            buf.skipBytes(buf.readableBytes());
-            return 0;
-        }
-
-        return count;
     }
 
 }

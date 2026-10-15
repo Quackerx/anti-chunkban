@@ -22,7 +22,7 @@ public class PacketDecoderMixin<T extends PacketListener> {
 
     // FALLBACK (or not rly but the last layer)
     @Inject(method = "decode", at = @At(value = "INVOKE", target = "Lio/netty/buffer/ByteBuf;readableBytes()I", ordinal = 2), locals = LocalCapture.CAPTURE_FAILSOFT)
-    private void saver$salvageAbnormalChunk(ChannelHandlerContext ctx, ByteBuf input, List<Object> out, CallbackInfo ci, int readableBytes, Packet<? super T> packet, PacketType<? extends Packet<? super T>> packetId) {
+    private void salvageAbnormalChunk(ChannelHandlerContext ctx, ByteBuf input, List<Object> out, CallbackInfo ci, int readableBytes, Packet<? super T> packet, PacketType<? extends Packet<? super T>> packetId) {
         if (!Saver.chunkban) {
             return;
         }

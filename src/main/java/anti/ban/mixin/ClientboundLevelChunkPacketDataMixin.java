@@ -6,7 +6,9 @@ import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.Holder;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundLevelChunkPacketData;
 import net.minecraft.world.level.biome.Biome;
@@ -23,31 +25,14 @@ import org.spongepowered.asm.mixin.injection.*;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.util.List;
+import java.util.Map;
 
 @Mixin(ClientboundLevelChunkPacketData.class)
 public class ClientboundLevelChunkPacketDataMixin {
 
-    // SANITIZES level chunk data JUST in case
-
-
-    @ModifyConstant(method = "<init>(Lnet/minecraft/network/RegistryFriendlyByteBuf;II)V", constant = @Constant(intValue = 2097152))
+    @ModifyArg(method = "<clinit>", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/codec/ByteBufCodecs;byteArray(I)Lnet/minecraft/network/codec/StreamCodec;"), index = 0)
     private static int increaseChunkDataLimit(int original) {
-        if (!Saver.chunkban) {return original;}
-
         return 16 * 1024 * 1024;
-    }
-
-    @Redirect(method = "<init>(Lnet/minecraft/network/RegistryFriendlyByteBuf;II)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/RegistryFriendlyByteBuf;readVarInt()I"))
-    private int sanitizeChunkSize(RegistryFriendlyByteBuf input) {
-        int size = input.readVarInt();
-        if (!Saver.chunkban) return size;
-
-        int available = input.readableBytes();
-        if (size < 0 || size > available) {
-            ChunkPacketState.markBadBlockEntityData();
-            return 0;
-        }
-        return size;
     }
 
     @Shadow
@@ -59,14 +44,9 @@ public class ClientboundLevelChunkPacketDataMixin {
     @Final
     private byte[] buffer;
 
-    @Inject(method = "<init>(Lnet/minecraft/network/RegistryFriendlyByteBuf;II)V", at = @At("RETURN"))
-    private void validateChunkBuffer(RegistryFriendlyByteBuf input, int x, int z, CallbackInfo ci) {
-        if (!Saver.chunkban) {
-            return;
-        }
-
-        if (!trySectionParse(input)) {
-
+    @Inject(method = "<init>(Ljava/util/Map;[BLjava/util/List;)V", at = @At("RETURN"))
+    private void validateChunkBuffer(Map<?, ?> heightmaps, byte[] buffer, List<?> blockEntitiesData, CallbackInfo ci) {
+        if (!trySectionParse()) {
             ChunkPacketState.markBadBlockEntityData();
             ChunkPacketState.markBadLightData();
             this.blockEntitiesData = List.of();
@@ -74,31 +54,31 @@ public class ClientboundLevelChunkPacketDataMixin {
     }
 
     @Unique
-    private boolean trySectionParse(RegistryFriendlyByteBuf input) {
+    private boolean trySectionParse() {
         ClientLevel level = Minecraft.getInstance().level;
 
         if (level == null) {
             return false;
         }
 
+        RegistryAccess registryAccess = level.registryAccess();
         int sectionCount = level.getSectionsCount();
 
-        RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(this.buffer), input.registryAccess());
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.wrappedBuffer(this.buffer));
 
         try {
             Strategy<BlockState> blockStrategy = Strategy.createForBlockStates(Block.BLOCK_STATE_REGISTRY);
 
-            Strategy<Holder<Biome>> biomeStrategy = Strategy.createForBiomes(input.registryAccess().lookupOrThrow(Registries.BIOME).asHolderIdMap());
+            Strategy<Holder<Biome>> biomeStrategy = Strategy.createForBiomes(
+                    registryAccess.lookupOrThrow(Registries.BIOME).asHolderIdMap());
 
-            Holder<Biome> defaultBiome = input.registryAccess().lookupOrThrow(Registries.BIOME).getOrThrow(Biomes.PLAINS);
+            Holder<Biome> defaultBiome = registryAccess.lookupOrThrow(Registries.BIOME).getOrThrow(Biomes.PLAINS);
 
             for (int i = 0; i < sectionCount; i++) {
                 PalettedContainer<BlockState> states = new PalettedContainer<>(Blocks.AIR.defaultBlockState(), blockStrategy);
-
                 PalettedContainer<Holder<Biome>> biomes = new PalettedContainer<>(defaultBiome, biomeStrategy);
 
                 LevelChunkSection section = new LevelChunkSection(states, biomes);
-
                 section.read(buf);
             }
 
