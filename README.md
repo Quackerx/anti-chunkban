@@ -8,4 +8,6 @@
   
 - Please report any issues or if there are any new chunkbans / bookbans that I should be aware of.
 
-- Download the built version from *https://modrinth.com/mod/anti-chunkbans* 
+- Download the built version from *https://modrinth.com/mod/anti-chunkbans*
+
+- Discord server for more support: *https://discord.gg/tchc7vfqUH*
